@@ -258,6 +258,7 @@ public class ContextLoader {
 	 * @see #CONFIG_LOCATION_PARAM
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		//避免配置多个web-application-context,这里会抛出IllegalStateException
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
 			throw new IllegalStateException(
 					"Cannot initialize context because there is already a root application context present - " +
@@ -275,9 +276,11 @@ public class ContextLoader {
 			// Store context in local instance variable, to guarantee that
 			// it is available on ServletContext shutdown.
 			if (this.context == null) {
+				//创建webapplicationContext
 				this.context = createWebApplicationContext(servletContext);
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
+				//如果是ConfigurableWebApplicationContext的子类则进行配置和刷新
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) this.context;
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
@@ -285,22 +288,27 @@ public class ContextLoader {
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
+						//如果context的父容器为空，则进行加载，但是该方法目前暂时未实现
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
+					//配置并刷新web应用上下文
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
+			//将context设置到servletContext中，枚举作为key一样类似的东西
 			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, this.context);
 
 			ClassLoader ccl = Thread.currentThread().getContextClassLoader();
 			if (ccl == ContextLoader.class.getClassLoader()) {
+				//如果当前类的类加载器和当前线程的上下文加载器是一样的，则将context赋值给当前类全局变量
 				currentContext = this.context;
 			}
 			else if (ccl != null) {
+				//将上下文放入到map中
 				currentContextPerThread.put(ccl, this.context);
 			}
-
+			//打印初始化花费时间
 			if (logger.isInfoEnabled()) {
 				long elapsedTime = System.currentTimeMillis() - startTime;
 				logger.info("Root WebApplicationContext initialized in " + elapsedTime + " ms");
@@ -372,6 +380,7 @@ public class ContextLoader {
 			// The application context id is still set to its original default value
 			// -> assign a more useful id based on available information
 			String idParam = sc.getInitParameter(CONTEXT_ID_PARAM);
+			//默认编号需要重新设置id
 			if (idParam != null) {
 				wac.setId(idParam);
 			}
@@ -381,9 +390,11 @@ public class ContextLoader {
 						ObjectUtils.getDisplayString(sc.getContextPath()));
 			}
 		}
-
+		//设置webApplicationContext的servletContext
 		wac.setServletContext(sc);
+		//设置context的配置文件
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
+		//配置文件地址
 		if (configLocationParam != null) {
 			wac.setConfigLocation(configLocationParam);
 		}
@@ -397,6 +408,7 @@ public class ContextLoader {
 		}
 
 		customizeContext(sc, wac);
+		//刷新context
 		wac.refresh();
 	}
 
