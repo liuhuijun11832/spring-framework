@@ -129,6 +129,7 @@ public class ContextLoader {
 	 * Name of the class path resource (relative to the ContextLoader class)
 	 * that defines ContextLoader's default strategy names.
 	 */
+	//如果没有在web-xml文件中配置<context-param/>，则默认的WebApplicationContext使用XmlWebApplicationContext。
 	private static final String DEFAULT_STRATEGIES_PATH = "ContextLoader.properties";
 
 
