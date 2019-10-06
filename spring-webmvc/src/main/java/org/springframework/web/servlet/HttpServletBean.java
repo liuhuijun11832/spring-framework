@@ -148,13 +148,18 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	public final void init() throws ServletException {
 
 		// Set bean properties from init parameters.
+		//解析web.xml中的init-param标签，封装到pvs中，这个构造函数中有一个所有initParams的遍历
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
+				//将当前这个Servlet对象转化成一个BeanWrapper对象
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
+				//注册自定义的属性编辑器，碰到Resource类型的属性，就会使用自从一的属性加载器进行处理
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
+				//留给字累实现的初始化bw对象
 				initBeanWrapper(bw);
+				//将属性值pvs设置到bw里
 				bw.setPropertyValues(pvs, true);
 			}
 			catch (BeansException ex) {
@@ -166,6 +171,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		//交给FrameworkServlet来实现
 		initServletBean();
 	}
 
@@ -217,6 +223,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		public ServletConfigPropertyValues(ServletConfig config, Set<String> requiredProperties)
 				throws ServletException {
 
+			//将必须的配置转换成一个set集合，当web.xml中配置了一个，就从set中移除一个，直到所有缺失的都移除
 			Set<String> missingProps = (!CollectionUtils.isEmpty(requiredProperties) ?
 					new HashSet<>(requiredProperties) : null);
 
@@ -224,6 +231,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 			while (paramNames.hasMoreElements()) {
 				String property = paramNames.nextElement();
 				Object value = config.getInitParameter(property);
+				//添加web.xml配置中的参数，如果已经存在就替换
 				addPropertyValue(new PropertyValue(property, value));
 				if (missingProps != null) {
 					missingProps.remove(property);
