@@ -302,7 +302,7 @@ public class ContextLoader {
 
 			ClassLoader ccl = Thread.currentThread().getContextClassLoader();
 			if (ccl == ContextLoader.class.getClassLoader()) {
-				//如果当前类的类加载器和当前线程的上下文加载器是一样的，则将context赋值给当前类全局变量
+				//如果当前类的类加载器，与业务类的类加载器一致，则该context可以是一个全局变量
 				currentContext = this.context;
 			}
 			else if (ccl != null) {
@@ -357,6 +357,7 @@ public class ContextLoader {
 		String contextClassName = servletContext.getInitParameter(CONTEXT_CLASS_PARAM);
 		if (contextClassName != null) {
 			try {
+				//底层调用的还是Class.forName()
 				return ClassUtils.forName(contextClassName, ClassUtils.getDefaultClassLoader());
 			}
 			catch (ClassNotFoundException ex) {
@@ -403,8 +404,10 @@ public class ContextLoader {
 		// The wac environment's #initPropertySources will be called in any case when the context
 		// is refreshed; do it eagerly here to ensure servlet property sources are in place for
 		// use in any post-processing or initialization that occurs below prior to #refresh
+		// getEnvironment()方法返回的就是一个ConfigurableWebEnvironment
 		ConfigurableEnvironment env = wac.getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
+			//初始化环境变量，保证一些在refresh之前刷新或进行初始化的部分能正常执行
 			((ConfigurableWebEnvironment) env).initPropertySources(sc, null);
 		}
 
