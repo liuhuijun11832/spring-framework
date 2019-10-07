@@ -157,9 +157,9 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
 				//注册自定义的属性编辑器，碰到Resource类型的属性，就会使用自从一的属性加载器进行处理
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
-				//留给字累实现的初始化bw对象
+				//留给子类实现的初始化bw对象
 				initBeanWrapper(bw);
-				//将属性值pvs设置到bw里
+				//TODO Joy 将属性值pvs设置到bw里,需要好好研究一下是怎么将contextConfigLocation赋值到FrameworkServlet里的
 				bw.setPropertyValues(pvs, true);
 			}
 			catch (BeansException ex) {
